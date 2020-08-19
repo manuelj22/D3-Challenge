@@ -76,7 +76,7 @@ d3.csv("Assets/Data/data_data.csv").then(function (Data) {
         .attr("style","color: cornsilk; font-size: 9px ")
     })
 
-    chartGroup.append("g")
+    ChartGroup.append("g")
         .append("text")
         .attr("y", 1)
         .attr("dy", "1em")
