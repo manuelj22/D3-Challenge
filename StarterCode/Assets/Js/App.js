@@ -20,7 +20,7 @@ let ChartGroup = Svg.append("g")
 
 
 
-d3.csv("Assets/Data/data.csv").then(function (Data) {
+d3.csv("Assets/Data/data_data.csv").then(function (Data) {
 
     console.log(Data)
     Data.forEach(d => console.log("smokes", typeof (d.smokes)))
