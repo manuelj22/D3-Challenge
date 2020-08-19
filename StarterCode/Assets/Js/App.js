@@ -1,93 +1,115 @@
-let SvgWidth = 960;
-let SvgHeight = 500;
+// Define SVG area dimensions
+var svgWidth = 960;
+var svgHeight = 500;
 
-let Svg = d3.select("body")
-    .append("svg")
-    .attr("width", SvgWidth)
-    .attr("height", SvgHeight)
+var margin = {
+  top: 20,
+  right: 40,
+  bottom: 60,
+  left: 100
+};
 
-let Margin = {
-    Top: 60,
-    Tight: 60,
-    Bottom: 60,
-    Left: 60
-}
+var width = svgWidth - margin.left - margin.right;
+var height = svgHeight - margin.top - margin.bottom;
 
-let ChartWidth = SvgWidth - Margin.Right - Margin.Left;
-let ChartHeight = SvgHeight - Margin.Top - Margin.Bottom;
-let ChartGroup = Svg.append("g")
-    .attr("transform", `translate(${Margin.Left},${Margin.Top})`)
+// Create an SVG wrapper, append an SVG group that will hold our chart, 
+//and shift the latter by left and top margins.
+var svg = d3
+  .select("#scatter")
+  .append("svg")
+  .attr("width", svgWidth)
+  .attr("height", svgHeight);
+
+// Append a group to the SVG area and shift ('translate') it to the right and down to adhere
+// to the margins set in the "chartMargin" object.
+var chartGroup = svg.append("g")
+  .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+// Load data from data.csv
+d3.csv("./assets/data/data.csv", function(error, statedata) {  
+    // Log an error if one exists
+    if (error) return console.warn(error)
+
+    statedata.forEach(function(data) {
+        data.poverty = +data.poverty;
+        data.smokes = +data.smokes;
+      });
 
 
+  // Create Scales
+  var xScale = d3.scaleLinear()
+    .domain([8, d3.max(statedata, d => d.poverty)])
+    .range([0, width]);
 
-d3.csv("Assets/Data/data_data.csv").then(function (Data) {
+  var yLinearScale = d3.scaleLinear()
+    .domain([4, d3.max(statedata, d => d.smokes)])
+    .range([height, 0]);
 
-    console.log(Data)
-    Data.forEach(d => console.log("smokes", typeof (d.smokes)))
+  // Create Axes
 
-    Data.forEach(function (d) {
-        d.poverty = +d.poverty;
-        d.healthcare = +d.healthcare;
+  var bottomAxis = d3.axisBottom(xScale);
+  var leftAxis = d3.axisLeft(yLinearScale);
+
+
+  // Append the axes to the chartGroup
+  // Add bottomAxis
+chartGroup.append("g")
+    .attr("transform", `translate(0, ${height})`)
+    .call(bottomAxis);
+  
+  
+  // Add leftAxis to the left side of the display
+chartGroup.append("g")
+    .call(leftAxis);
+
+// Create Circles
+var circlesGroup = chartGroup.selectAll("circle")
+    .data(statedata)
+    .enter()
+    .append("circle")
+    .attr("cx", d => xScale(d.poverty))
+    .attr("cy", d => yLinearScale(d.smokes))
+    .attr("r", 15)
+    .attr("class", function(d) {
+        return "stateCircle " + d.abbr;
+      })
+    .attr("fill", "purple")
+    .attr("opacity", ".8")
+
+var toolTip = d3.tip()
+.attr("class", "tooltip")
+.attr([1, -1])
+.html(function(d) {
+  return (`${d.abbr}`);
+});
+
+// Create tooltip in the chart
+
+chartGroup.call(toolTip);
+
+circlesGroup.on("click", function(data) {
+    toolTip.show(data, this);
+  })
+    // onmouseout event
+    .on("mouseout", function(data, index) {
+      toolTip.hide(data);
     });
-    Data.forEach(d => console.log("poverty", d.poverty))
-    console.log(([d3.max(data, d => d.poverty)]))
-    console.log(([d3.min(data, d => d.poverty)]))
-
-    let yLinearScale = d3.scaleLinear()
-        .domain([d3.min(data, d => d.healthcare), d3.max(Data, d => d.healthcare)])
-        .range([chartHeight, 0]);
-
-    let xLinearScale = d3.scaleLinear()
-        .domain([d3.min(data, d => d.poverty), d3.max(Data, d => d.poverty)])
-        .range([0, ChartWidth]);
-
-    let BottomAxis = d3.axisBottom(xLinearScale);
-    let LeftAxis = d3.axisLeft(yLinearScale);
-
-    ChartGroup.append("g")
-        .classed("axis", true)
-        .call(LeftAxis)
-
-    ChartGroup.append("g")
-        .classed("axis", true)
-        .attr("transform", `translate(0,${ChartHeight})`)
-        .call(BottomAxis)
-
-
-    let CirclesGroup = ChartGroup.selectAll("circle")
-        .data(data)
-        .enter()
-        .append("circle")
-        .attr("cx", d => xLinearScale(d.poverty))
-        .attr("cy", d => yLinearScale(d.healthcare))
-        .text(d => d.abbr)
-        .attr("r", "8")
-        .attr("fill", "cornflowerblue")
-        .attr("stroke-width", "1")
-        .attr("stroke", "black");
 
 
 
-    Data.forEach(function (d) {
-        ChartGroup.append("g")
-        .append("text")
-        .text(d.abbr)
-        .attr("transform", `translate(${xLinearScale(d.poverty)-7},${yLinearScale(d.healthcare)+3})`)
-        .attr("style","color: cornsilk; font-size: 9px ")
-    })
 
-    ChartGroup.append("g")
-        .append("text")
-        .attr("y", 1)
-        .attr("dy", "1em")
-        .attr("transform", "rotate(-90) translate(-250,-50)")
-        .text("Lacks Healthcare (%)");
+chartGroup.append("text")
+    .attr("transform", `translate(${width / 3}, ${height + margin.top + 20})`)
+    .text("Percentage of Population in Poverty");
 
-    ChartGroup.append("g")
-        .append("text")
-        .attr("x", 1)
-        .attr("dx", "1em")
-        .attr("transform", `translate(370,${ChartWidth / 2})`)
-        .text("In Poverty (%)");
+    // Create axes labels
+    chartGroup.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left + 40)
+      .attr("x", 0 - (height/1.2))
+      .attr("dy", "1em")
+      .attr("class", "axisText")
+      .text("Percentage of Population that Smokes");
 
-})
+
+    });
