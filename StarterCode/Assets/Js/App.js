@@ -26,7 +26,7 @@ var chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
 // Load data from data.csv
-d3.csv("./assets/data/data.csv", function(error, statedata) {  
+d3.csv("./assets/data/data_data.csv", function(error, statedata) {  
     // Log an error if one exists
     if (error) return console.warn(error)
 
@@ -96,20 +96,46 @@ circlesGroup.on("click", function(data) {
     });
 
 
-
-
 chartGroup.append("text")
     .attr("transform", `translate(${width / 3}, ${height + margin.top + 20})`)
     .text("Percentage of Population in Poverty");
 
-    // Create axes labels
-    chartGroup.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left + 40)
-      .attr("x", 0 - (height/1.2))
-      .attr("dy", "1em")
-      .attr("class", "axisText")
-      .text("Percentage of Population that Smokes");
+// Create axes labels
+  chartGroup.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left + 40)
+    .attr("x", 0 - (height/1.2))
+    .attr("dy", "1em")
+    .attr("class", "axisText")
+    .text("Percentage of Population that Smokes");
 
 
-    });
+  // Initialize tooltip
+let toolTip = d3.tip()
+      .attr('class', 'tooltip')
+      .offset([80, -60])
+      .html(function(d) {
+  return (`Poverty: ${d.poverty} <br> Healthcare ${d.healthcare}`);
+});
+
+// Create tooltip in the chart
+chartGroup.call(toolTip);
+
+// Create event listeners to display and hide the tooltip
+circlesGroup.on('mouseover', function(d) { 
+toolTip.show(d, this);
+})
+
+.on('mouseout', function(d,i) { 
+toolTip.hide(d);
+})
+
+}).catch(function(error) {
+console.log(error);
+});
+
+// When the browser loads, makeResponsive() is called.
+makeResponsive();
+
+// When the browser window is resized, makeResponsive() is called.
+d3.select(window).on('resize', makeResponsive);
