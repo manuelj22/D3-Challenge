@@ -1,4 +1,4 @@
-// Define SVG area dimensions
+
 var svgWidth = 960;
 var svgHeight = 500;
 
@@ -12,22 +12,20 @@ var margin = {
 var width = svgWidth - margin.left - margin.right;
 var height = svgHeight - margin.top - margin.bottom;
 
-// Create an SVG wrapper, append an SVG group that will hold our chart, 
-//and shift the latter by left and top margins.
+
 var svg = d3
   .select("#scatter")
   .append("svg")
   .attr("width", svgWidth)
   .attr("height", svgHeight);
 
-// Append a group to the SVG area and shift ('translate') it to the right and down to adhere
-// to the margins set in the "chartMargin" object.
+
 var chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-// Load data from data.csv
+
 d3.csv("./assets/data/data_data.csv", function(error, statedata) {  
-    // Log an error if one exists
+   
     if (error) return console.warn(error)
 
     statedata.forEach(function(data) {
@@ -36,7 +34,7 @@ d3.csv("./assets/data/data_data.csv", function(error, statedata) {
       });
 
 
-  // Create Scales
+  
   var xScale = d3.scaleLinear()
     .domain([8, d3.max(statedata, d => d.poverty)])
     .range([0, width]);
@@ -45,24 +43,23 @@ d3.csv("./assets/data/data_data.csv", function(error, statedata) {
     .domain([4, d3.max(statedata, d => d.smokes)])
     .range([height, 0]);
 
-  // Create Axes
+  
 
   var bottomAxis = d3.axisBottom(xScale);
   var leftAxis = d3.axisLeft(yLinearScale);
 
 
-  // Append the axes to the chartGroup
-  // Add bottomAxis
+  
 chartGroup.append("g")
     .attr("transform", `translate(0, ${height})`)
     .call(bottomAxis);
   
   
-  // Add leftAxis to the left side of the display
+ 
 chartGroup.append("g")
     .call(leftAxis);
 
-// Create Circles
+
 var circlesGroup = chartGroup.selectAll("circle")
     .data(statedata)
     .enter()
@@ -83,14 +80,14 @@ var toolTip = d3.tip()
   return (`${d.abbr}`);
 });
 
-// Create tooltip in the chart
+
 
 chartGroup.call(toolTip);
 
 circlesGroup.on("click", function(data) {
     toolTip.show(data, this);
   })
-    // onmouseout event
+   
     .on("mouseout", function(data, index) {
       toolTip.hide(data);
     });
@@ -100,7 +97,7 @@ chartGroup.append("text")
     .attr("transform", `translate(${width / 3}, ${height + margin.top + 20})`)
     .text("Percentage of Population in Poverty");
 
-// Create axes labels
+
   chartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 0 - margin.left + 40)
@@ -110,7 +107,7 @@ chartGroup.append("text")
     .text("Percentage of Population that Smokes");
 
 
-  // Initialize tooltip
+  
 let toolTip = d3.tip()
       .attr('class', 'tooltip')
       .offset([80, -60])
@@ -118,10 +115,10 @@ let toolTip = d3.tip()
   return (`Poverty: ${d.poverty} <br> Healthcare ${d.healthcare}`);
 });
 
-// Create tooltip in the chart
+
 chartGroup.call(toolTip);
 
-// Create event listeners to display and hide the tooltip
+
 circlesGroup.on('mouseover', function(d) { 
 toolTip.show(d, this);
 })
@@ -134,8 +131,8 @@ toolTip.hide(d);
 console.log(error);
 });
 
-// When the browser loads, makeResponsive() is called.
+
 makeResponsive();
 
-// When the browser window is resized, makeResponsive() is called.
+
 d3.select(window).on('resize', makeResponsive);
